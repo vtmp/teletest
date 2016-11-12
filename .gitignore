@@ -1,0 +1,12 @@
+# backups
+**/*~
+
+# build path
+build
+
+# ide files
+*.config
+*.creator
+*.files
+*.includes
+

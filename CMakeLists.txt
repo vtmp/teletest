@@ -27,5 +27,8 @@ set(SOURCES
 add_executable(${PROJECT_NAME} ${SOURCES})
 target_link_libraries(${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES} serialport)
 
+add_executable(uut_example misc/uut_example.c)
+target_link_libraries(${PROJECT_NAME} serialport)
+
 # testing
 #add_test(AllTestsInFoo foo)

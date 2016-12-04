@@ -8,7 +8,7 @@ typedef enum {CHAR, CSTR, FLOAT, INT} DataType;
 typedef struct
 {
     const char fun_name[10];
-    void* fun_ptr;
+    float (*fun_ptr)(float, float); //TODO fixme use general function pointer and cast
     int num_args;
     const DataType type_args[2];
     const  DataType type_ret;
@@ -28,9 +28,9 @@ float mult(float a, float b) {return a*b;}
 
 
 Function functions_under_test[] = {
-    {"add", (void*)&add, 2, {FLOAT, FLOAT}, FLOAT},
-    {"sub", (void*)&sub, 2, {FLOAT, FLOAT}, FLOAT},
-    {"mult", (void*)&mult, 2, {FLOAT, FLOAT}, FLOAT}};
+    {"add", add, 2, {FLOAT, FLOAT}, FLOAT},
+    {"sub", sub, 2, {FLOAT, FLOAT}, FLOAT},
+    {"mult", mult, 2, {FLOAT, FLOAT}, FLOAT}};
 
 
 int run_assertion(const char* msg);
@@ -40,7 +40,7 @@ int main()
 {
     // some other init
 
-    for(;;)
+    for(int i=0;i<4;++i)
     {
         // some other stuff
 
@@ -70,5 +70,25 @@ int run_assertion(const char* msg)
     // TODO parse msg
     // run function
     // send return value
+
+    int num_args = 2;
+    int fun_id = 1;
+
+    float arg1 = 1.4;
+    float arg2 = 1.6;
+
+    float ret_val;
+
+    switch(num_args)
+    {
+    case 0:
+        ret_val = functions_under_test[fun_id].fun_ptr(arg1, arg2);
+        break;
+
+    case 2:
+        ret_val = functions_under_test[fun_id].fun_ptr(arg1, arg2);
+        printf("%f\n", ret_val);
+        break;
+    }
     return 0;
 }

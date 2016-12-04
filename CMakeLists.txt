@@ -8,6 +8,9 @@ set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
 enable_testing()
 find_package(GTest REQUIRED)
 
+# libserialport
+find_library(LIBSERIALPORT_LIBRARIES serialport)
+
 #message( ${CMAKE_CURRENT_SOURCE_DIR})
 
 include_directories(
@@ -16,11 +19,13 @@ include_directories(
 
 set(SOURCES
     src/main.cpp
+    src/SerialInterface.cpp
     src/TeleAssertion.cpp
+    src/FakeMicroController.cpp
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
-target_link_libraries(${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES} serialport)
 
 # testing
 #add_test(AllTestsInFoo foo)

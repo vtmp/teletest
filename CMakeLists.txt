@@ -4,6 +4,10 @@ cmake_minimum_required(VERSION 2.8)
 # c++11
 set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
 
+# debug symbols
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall")
+
 # gtest
 enable_testing()
 find_package(GTest REQUIRED)
@@ -21,7 +25,7 @@ set(SOURCES
     src/main.cpp
     src/SerialInterface.cpp
     src/TeleAssertion.cpp
-    src/FakeMicroController.cpp
+    src/FunctionInfo.cpp
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})

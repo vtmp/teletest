@@ -8,8 +8,8 @@ TeleAssertion::TeleAssertion(std::string str_assertion)
 bool TeleAssertion::parse_syntax(std::string str_assertion)
 {
     std::istringstream iss(str_assertion);
-    std::vector<std::string> vec_of_str_assertion{std::istream_iterator<std::string>{iss},
-                                                  std::istream_iterator<std::string>{}};
+    std::vector<std::string> vec_of_str_assertion(std::istream_iterator<std::string>{iss},
+                                                  std::istream_iterator<std::string>{});
 
 
     // TODO skip empty lines without complaining
@@ -28,7 +28,7 @@ bool TeleAssertion::parse_syntax(std::string str_assertion)
         m_function_name = std::string(vec_of_str_assertion[idx_run+1]);
 
         for (int i=idx_with+1; i<idx_expects; ++i)
-            m_parameters.push_back(vec_of_str_assertion[i]);
+            m_args.push_back(vec_of_str_assertion[i]);
 
         m_expected_value = vec_of_str_assertion[idx_expects+1];
         //std::cout << m_expected_value << std::endl;
@@ -38,4 +38,16 @@ bool TeleAssertion::parse_syntax(std::string str_assertion)
 
     }
     // TODO parse
+
+    return true;
+}
+
+std::string TeleAssertion::toSerialMsg() const
+{
+    std::ostringstream oss;
+    oss << "RUN " << this->m_function_name;
+    for (auto s : this->m_args)
+        oss << " " << s;
+
+    return oss.str();
 }

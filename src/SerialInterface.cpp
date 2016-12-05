@@ -33,12 +33,10 @@ bool SerialInterface::openPort()
 
 int SerialInterface::requestFunctionInfo()
 {
+    // TODO
     for (int i=0; i<MAX_ATTEMPTS; ++i)
     {
-        sp_event_set *event;
-        sp_new_event_set(&event);
-        sp_add_port_events(event, m_port_ptr, SP_EVENT_RX_READY);
-        void* buffer = malloc(MAX_BUFFER_SIZE);
+
 
         for (int j=0; j<100; ++j)
         {
@@ -49,8 +47,6 @@ int SerialInterface::requestFunctionInfo()
             sp_flush(m_port_ptr, SP_BUF_OUTPUT);
             usleep(1e5);
         }
-
-        sp_free_event_set(event);
     }
 
     return 0;
@@ -69,6 +65,72 @@ void SerialInterface::listPorts()
 
     for (int i = 0; ports[i]; i++)
         std::cout << sp_get_port_name(ports[i]) << std::endl;
+}
+
+
+// TODO this should return a clean string, that ends with \n\0
+// needs error checking
+// and could make several attempts till get correct result
+std::string SerialInterface::getLine()
+{
+    // setup event
+    sp_event_set *event;
+    sp_new_event_set(&event);
+    sp_add_port_events(event, m_port_ptr, SP_EVENT_RX_READY);
+    char buffer[BUFFER_SIZE];
+
+    // read
+    sp_wait(event, 1e4);
+    if (sp_input_waiting(m_port_ptr) > 0)
+    {
+        sp_nonblocking_read(m_port_ptr, buffer, BUFFER_SIZE);
+        std::cout << std::string(buffer) << std::endl;
+
+    //sp_blocking_read(m_port_ptr, buffer, BUFFER_SIZE, 1e4);
+    // sp_flush(m_port_ptr, SP_BUF_INPUT);
+    }
+
+    // TODO check for errors
+    sp_free_event_set(event);
+    return std::string(buffer);
+}
+
+
+//TODO FIXME does not really belong here
+std::pair<std::string,int> SerialInterface::extractFunctionInfo(const std::string& msg)
+{
+    auto idx_ws = msg.find(' ');
+    auto func_name = msg.substr(0, idx_ws);
+    auto num_args = std::atoi(msg.substr(idx_ws+1).c_str());
+
+    std::cout << func_name << " " << num_args << std::endl;
+
+    return std::pair<std::string,int> (func_name, num_args);
+}
+
+
+void SerialInterface::sendAssertion(const TeleAssertion& ta)
+{
+    auto msg = ta.toSerialMsg();
+    this->send(msg);
+}
+
+
+std::string SerialInterface::receiveResult(const TeleAssertion& ta)
+{
+    // example: RET 3.0
+    auto result_msg = getLine();
+    auto idx_ws = result_msg.find(' ');
+    return result_msg.substr(idx_ws+1);
+}
+
+
+void SerialInterface::send(const std::string& msg)
+{
+    sp_nonblocking_write(m_port_ptr, msg.c_str(), msg.size());
+    sp_drain(m_port_ptr); //waits till send
+    sp_flush(m_port_ptr, SP_BUF_OUTPUT);
+    //usleep(1e5); // some extra time?
 }
 
 bool SerialInterface::toBool(sp_return return_value)

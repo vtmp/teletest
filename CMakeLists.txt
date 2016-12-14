@@ -31,8 +31,12 @@ set(SOURCES
 add_executable(${PROJECT_NAME} ${SOURCES})
 target_link_libraries(${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES} serialport)
 
+#TODO add if case
 add_executable(uut_example misc/uut_example.c)
-target_link_libraries(${PROJECT_NAME} serialport)
+target_link_libraries(uut_example serialport wiringPi)
 
 # testing
 #add_test(AllTestsInFoo foo)
+
+add_executable(crc_example misc/crc_example.c)
+#target_link_libraries(crc_example)

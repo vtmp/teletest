@@ -1,5 +1,10 @@
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
+
+#include <wiringPi.h>
+#include <wiringSerial.h>
+
 
 typedef enum {CHAR, CSTR, FLOAT, INT} DataType;
 //enum DataType {CHAR, CSTR, FLOAT, INT};
@@ -34,7 +39,9 @@ Function functions_under_test[] = {
 
 
 int run_assertion(const char* msg);
-
+int init_serial();
+int listen_for_assertions(int fd);
+int readMsg();
 
 int main()
 {
@@ -64,6 +71,53 @@ int main()
     return 0;
 }
 
+
+int init_serial()
+{
+    int fd = -1;
+    if ((fd = serialOpen ("/dev/ttyAMA0", 115200)) < 0)
+    {
+        fprintf (stderr, "Unable to open serial device: %s\n", strerror (errno)) ;
+        return -1;
+    }
+
+    if (wiringPiSetup () == -1)
+    {
+        fprintf (stdout, "Unable to start wiringPi: %s\n", strerror (errno)) ;
+        return 1;
+    }
+    return fd;
+}
+
+
+int listen_for_assertions(int fd)
+{
+    char buffer[128];
+    int idx = readMsg(fd, buffer, 128);
+    printf("%s\n", &buffer);
+}
+
+
+int readMsg(int fd, char* str, int count)
+{
+    int idx = 0;
+    unsigned int timeout = millis()+5;
+    char c = 'x';
+
+    while (millis() < timeout && c != '\0' && idx<count)
+    {
+        if (serialDataAvail(fd))
+        {
+            c = serialGetchar(fd);
+            str[idx] = c;
+            timeout = millis()+5;
+            idx++;
+        }
+    }
+    str[idx] = '\0';
+
+    return idx;
+}
 
 int run_assertion(const char* msg)
 {

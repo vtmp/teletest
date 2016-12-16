@@ -17,6 +17,8 @@ public:
     const int MAX_ATTEMPTS = 3;
     const int BUFFER_SIZE = 64;
 
+    typedef enum {RET, RUN, ERR0, ERR1} MsgType;
+
     SerialInterface();
 
     bool openPort();
@@ -33,14 +35,21 @@ public:
     void sendAssertion(const TeleAssertion& ta);
     std::string receiveResult(const TeleAssertion& ta);
 
-    std::string getLine();
+
+
+    void sendMsg(const std::string& msg);
+    std::string receiveMsg();
+
+    unsigned int calculateCrc(const std::string& msg);
+
+    // TODO
+    MsgType parseMsg(const std::string& msg);
 
 private:
     struct sp_port *m_port_ptr;
     bool m_is_open;
 
     bool toBool(sp_return return_value);
-    void send(const std::string& msg);
 
 
 };

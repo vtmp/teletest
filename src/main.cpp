@@ -21,15 +21,7 @@ int main(int argc, char *argv[])
     if (serial.isOpen() == false)
         exit(1); // error -> quit
 
-    // have a list of FunctionInfo.
-    // request
-    //serial.requestFunctionInfo();
-    // while hasNext
-    //for (int i=0; i<10; ++i)
-    //    auto reply = serial.getLine();
 
-    // ...
-    // serial.receiveFunctionInfo
 
     std::map<std::string, int> testable_functions;
     testable_functions.insert(serial.extractFunctionInfo("add 2"));

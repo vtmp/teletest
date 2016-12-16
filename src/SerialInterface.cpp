@@ -1,4 +1,5 @@
 #include "SerialInterface.hpp"
+#include "Definitions.hpp"
 
 SerialInterface::SerialInterface()
 {
@@ -68,34 +69,6 @@ void SerialInterface::listPorts()
 }
 
 
-// TODO this should return a clean string, that ends with \n\0
-// needs error checking
-// and could make several attempts till get correct result
-std::string SerialInterface::getLine()
-{
-    // setup event
-    sp_event_set *event;
-    sp_new_event_set(&event);
-    sp_add_port_events(event, m_port_ptr, SP_EVENT_RX_READY);
-    char buffer[BUFFER_SIZE];
-
-    // read
-    sp_wait(event, 1e4);
-    if (sp_input_waiting(m_port_ptr) > 0)
-    {
-        sp_nonblocking_read(m_port_ptr, buffer, BUFFER_SIZE);
-        std::cout << std::string(buffer) << std::endl;
-
-    //sp_blocking_read(m_port_ptr, buffer, BUFFER_SIZE, 1e4);
-    // sp_flush(m_port_ptr, SP_BUF_INPUT);
-    }
-
-    // TODO check for errors
-    sp_free_event_set(event);
-    return std::string(buffer);
-}
-
-
 //TODO FIXME does not really belong here
 std::pair<std::string,int> SerialInterface::extractFunctionInfo(const std::string& msg)
 {
@@ -112,26 +85,73 @@ std::pair<std::string,int> SerialInterface::extractFunctionInfo(const std::strin
 void SerialInterface::sendAssertion(const TeleAssertion& ta)
 {
     auto msg = ta.toSerialMsg();
-    this->send(msg);
+    this->sendMsg(msg);
 }
 
 
 std::string SerialInterface::receiveResult(const TeleAssertion& ta)
 {
     // example: RET 3.0
-    auto result_msg = getLine();
+    auto result_msg = receiveMsg();
     auto idx_ws = result_msg.find(' ');
     return result_msg.substr(idx_ws+1);
 }
 
 
-void SerialInterface::send(const std::string& msg)
+void SerialInterface::sendMsg(const std::string& msg)
 {
-    sp_nonblocking_write(m_port_ptr, msg.c_str(), msg.size());
+    // append crc
+    auto crc = calculateCrc(msg);
+    std::string msg_crc = msg + CRC_DELIMITER + std::to_string(crc);
+
+    sp_nonblocking_write(m_port_ptr, msg_crc.c_str(), msg_crc.size());
     sp_drain(m_port_ptr); //waits till send
-    sp_flush(m_port_ptr, SP_BUF_OUTPUT);
+    sp_flush(m_port_ptr, SP_BUF_BOTH);
     //usleep(1e5); // some extra time?
 }
+
+// returns received msg OR nothing
+std::string SerialInterface::receiveMsg()
+{
+    // setup event
+    sp_event_set *event;
+    sp_new_event_set(&event);
+    sp_add_port_events(event, m_port_ptr, SP_EVENT_RX_READY);
+    char buffer[BUFFER_SIZE];
+
+    // read
+    sp_wait(event, 1e4);
+    if (sp_input_waiting(m_port_ptr) > 0)
+    {
+        // wait 1 ms
+        usleep(1e5);
+        sp_nonblocking_read(m_port_ptr, buffer, BUFFER_SIZE);
+        std::cout << std::string(buffer) << std::endl;
+        sp_flush(m_port_ptr, SP_BUF_INPUT);
+    }
+
+    sp_free_event_set(event);
+
+    // check for errors
+    auto msg_crc = std::string(buffer);
+    auto crc_delimiter_idx = msg_crc.find(CRC_DELIMITER);
+
+    if (crc_delimiter_idx == std::string::npos)
+        return "";
+
+    auto msg = msg_crc.substr(0, crc_delimiter_idx);
+    unsigned int crc_actual = stoi(msg_crc.substr(crc_delimiter_idx+1));
+    std::cout << crc_actual << std::endl;
+
+    auto crc_expected = calculateCrc(msg);
+    std::cout << msg << "|" << crc_expected << std::endl;
+
+    if (crc_actual != crc_expected)
+        return "";
+
+    return msg;
+}
+
 
 bool SerialInterface::toBool(sp_return return_value)
 {
@@ -159,4 +179,24 @@ bool SerialInterface::toBool(sp_return return_value)
     }
 
     return false;
+}
+
+
+unsigned int SerialInterface::calculateCrc(const std::string& msg)
+{
+    std::vector<unsigned char> buff(msg.begin(), msg.end());
+
+    unsigned char* data = &buff[0];
+    unsigned int crc = 0xffff;
+    unsigned int length = msg.length();
+    unsigned int count;
+    unsigned int temp;
+
+    for (count = 0; count < length; ++count)
+    {
+      temp = (*data++ ^ (crc >> 8)) & 0xff;
+      crc = CRC_TABLE[temp] ^ (crc << 8);
+    }
+
+    return crc & 0xffff;
 }

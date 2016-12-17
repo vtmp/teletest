@@ -70,6 +70,7 @@ add_library(inih
 
 find_library(INIH inih)
 
+
 #message( ${CMAKE_CURRENT_SOURCE_DIR})
 
 include_directories(

@@ -62,7 +62,10 @@ ExternalProject_Get_Property(inih_tmp SOURCE_DIR)
 message(${SOURCE_DIR})
 # TODO FIXME this is not working properly
 include_directories(${SOURCE_DIR}/cpp)
-add_library(inih ${SOURCE_DIR}/cpp/INIReader.cpp)
+include_directories(${SOURCE_DIR})
+add_library(inih
+    ${SOURCE_DIR}/cpp/INIReader.cpp
+    ${SOURCE_DIR}/ini.c)
 
 #message( ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -72,6 +75,7 @@ include_directories(
 
 set(SOURCES
     src/main.cpp
+    src/ConfigManager.cpp
     src/SerialInterface.cpp
     src/TeleAssertion.cpp
 )

@@ -1,7 +1,8 @@
 #include "SerialInterface.hpp"
-#include "Definitions.hpp"
 
-SerialInterface::SerialInterface()
+
+SerialInterface::SerialInterface(const ConfigManager& config) :
+    m_config(config)
 {
     m_port_ptr = nullptr;
     m_is_open = false;
@@ -12,19 +13,19 @@ bool SerialInterface::openPort()
 {
 
     // find port by name
-    sp_get_port_by_name(PORTNAME, &m_port_ptr);
+    sp_get_port_by_name(m_config.get_port().c_str(), &m_port_ptr);
 
     // config and open port
     if (m_port_ptr == NULL)
     {
-        std::cerr << "Unable to find port name " << PORTNAME << std::endl;
+        std::cerr << "Unable to find port name " << m_config.get_port() << std::endl;
         return false;
     }
     // use 8-N-1 configuration
-    sp_set_bits(m_port_ptr, 8);
-    sp_set_parity(m_port_ptr, SP_PARITY_NONE);
-    sp_set_stopbits(m_port_ptr, 1);
-    sp_set_baudrate(m_port_ptr, 115200);
+    sp_set_bits(m_port_ptr, m_config.get_stop_bits());
+    sp_set_parity(m_port_ptr, (sp_parity)m_config.get_parity_bit());
+    sp_set_stopbits(m_port_ptr, m_config.get_stop_bits());
+    sp_set_baudrate(m_port_ptr, m_config.get_baudrate());
     sp_set_flowcontrol(m_port_ptr, SP_FLOWCONTROL_NONE);
 
     auto return_value = sp_open(m_port_ptr, SP_MODE_READ_WRITE);

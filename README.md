@@ -24,5 +24,7 @@ create a folder in the project folder `mkdir build` and switch to it `cd build`.
 TeleTest reads from stdin. therefore you can run it simply by `./teletest`, type in the assertions and execute with EOF (`Ctrl-D` on Linux and maxOS, `Ctrl-Z` on Windows). to run TeleTest in large scale you may want to read the assertions from a simple text file. in order to do that redirect stdin `./teletest < list_of_assertions.txt`
 
 #### assertion syntax
-teletest uses a simple syntax for testing using the keywords *RUN*, *WITH*, *EXPECT*. for example an assertion for a function `float add(float a, float b) {return a+b;}` could look like `RUN add WITH 3.5 -1.4 EXPECT 2.1`
-`
+TeleTest uses a simple syntax for testing using the keywords *RUN*, *WITH*, *EXPECT*. for example an assertion for a function `float add(float a, float b) {return a+b;}` could look like `RUN add WITH 3.5 -1.4 EXPECT 2.1`
+
+#### configuration
+TeleTest expects the configuration file `.TeleTest.conf` in your home directory. The project directory contains an example of the configuration file: `example.conf`.

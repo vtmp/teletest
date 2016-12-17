@@ -2,9 +2,9 @@
 #include <libserialport.h>
 #include <map>
 
+#include "ConfigManager.hpp"
 #include "TeleAssertion.hpp"
 #include "SerialInterface.hpp"
-#include "FunctionInfo.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -12,8 +12,11 @@ int main(int argc, char *argv[])
     // TODO some cli for passing option, print help, etc ...
     // add option --no-halt for skipping syntax/semantic errors
 
+    ConfigManager config;
+    auto conf_loaded = config.load();
+
     // init serial connection
-    SerialInterface serial;
+    SerialInterface serial(config);
     //serial.list_ports();
 
     // send request

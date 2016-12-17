@@ -1,6 +1,10 @@
 project(teletest)
 cmake_minimum_required(VERSION 2.8)
 
+# options
+option(DOWNLOAD_GTEST "DOWNLOAD_GTEST" OFF)
+option(DOWNLOAD_SERIALPORT "DOWNLOAD_LIBSERIAL" OFF)
+
 # c++11
 set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
 
@@ -8,29 +12,27 @@ set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall")
 
-# externals
-set(GTEST NO)
-set(DOWNLOAD_EXTERNALS NO)
+
 
 enable_testing()
 include(ExternalProject)
 set(EXTERNAL_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/external)
 
 # gtest
-if (GTEST)
-ExternalProject_Add(googletest
-    GIT_REPOSITORY https://github.com/google/googletest
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_LOCATION}
-)
-endif (GTEST)
+IF (${DOWNLOAD_GTEST})
 
-include_directories(${EXTERNAL_INSTALL_LOCATION}/include)
-link_directories(${EXTERNAL_INSTALL_LOCATION}/lib)
+    ExternalProject_Add(googletest
+        GIT_REPOSITORY https://github.com/google/googletest
+        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_LOCATION})
 
+    include_directories(${EXTERNAL_INSTALL_LOCATION}/include)
+    link_directories(${EXTERNAL_INSTALL_LOCATION}/lib)
+ENDIF (${DOWNLOAD_GTEST})
 
 # libserialport
-# TODO FIXMEload externally
-IF (${DOWNLOAD_EXTERNALS})
+IF (${DOWNLOAD_SERIALPORT})
+
+    # TODO FIXMEload externally
     ExternalProject_Add(serialport_tmp
         GIT_REPOSITORY git://sigrok.org/libserialport
         GIT_TAG master
@@ -43,11 +45,10 @@ IF (${DOWNLOAD_EXTERNALS})
     add_library(serialport SHARED IMPORTED)
     add_dependencies(serialport serialport_tmp)
 
-ELSE (${DOWNLOAD_EXTERNALS})
+ELSE (${DOWNLOAD_SERIALPORT})
     find_library(LIBSERIALPORT_LIBRARIES serialport)
-ENDIF (${DOWNLOAD_EXTERNALS})
+ENDIF (${DOWNLOAD_SERIALPORT})
 
-#find_library(serialport)
 
 # inih
 ExternalProject_Add(inih_tmp
@@ -66,6 +67,8 @@ include_directories(${SOURCE_DIR})
 add_library(inih
     ${SOURCE_DIR}/cpp/INIReader.cpp
     ${SOURCE_DIR}/ini.c)
+
+find_library(INIH inih)
 
 #message( ${CMAKE_CURRENT_SOURCE_DIR})
 

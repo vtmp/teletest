@@ -5,6 +5,46 @@
 #include <wiringPi.h>
 #include <wiringSerial.h>
 
+int receive_char_by_UART()
+{
+    return 0;
+}
+
+int receive_msg(char* buffer, unsigned int length)
+{
+    // NOT VERY SAFE
+    char crc_str[8];
+    char c = 'x';
+    int count = 0;
+    int read_crc = 0;
+
+    char FIN = '\n';
+
+    while (count < length && c != FIN)
+    {
+        c = receive_char_by_UART();
+
+        if (c == '|')
+        {
+            read_crc = 1;
+            buffer[count] = '\0';
+            count = 0;
+            continue;
+        }
+
+        if (read_crc)
+            buffer[count++] = c;
+        else
+            crc_str[count++] = c;
+
+    }
+    crc_str[count] = '\0';
+
+    // calculate the crc
+
+    // compare
+}
+
 
 typedef enum {CHAR, CSTR, FLOAT, INT} DataType;
 //enum DataType {CHAR, CSTR, FLOAT, INT};

@@ -22,14 +22,6 @@ int main(int argc, char *argv[])
         exit(1); // error -> quit
 
 
-
-    std::map<std::string, int> testable_functions;
-    testable_functions.insert(serial.extractFunctionInfo("add 2"));
-    testable_functions.insert(serial.extractFunctionInfo("sub 2"));
-    testable_functions.insert(serial.extractFunctionInfo("mult 2"));
-
-
-
     std::string str_assertion_tmp;
     while(std::getline(std::cin, str_assertion_tmp))
     {
@@ -42,41 +34,22 @@ int main(int argc, char *argv[])
 
         if (ta.syntax_is_valid() == false)
         {
-            std::cout << "invalid" << std::endl;
+            std::cout << "cannot parse \"" << str_assertion_tmp << "\"" << std::endl;
             continue;
         }
 
-        // test if ta is in testsable functions
-        auto func_elem = testable_functions.find(ta.get_name());
-        if (func_elem == testable_functions.end())
-        {
-            std::cerr << "function " << ta.get_name() << " is not testable" << std::endl;
-            continue;
-        }
 
-        else if(func_elem->second != ta.get_num_args()) // num args mismatch
-        {
-            std::cerr << "Assertion for function \"" << ta.get_name() << "\" has " << ta.get_num_args() << " args,";
-            std::cerr << " but expects " << func_elem->second << " args." << std::endl;
-            continue;
-        }
+        // send & receive assertion from uC
+        auto result_str = serial.teletestAssertion(ta);
 
-        // at this point everything should be fine, the type will not be checked
-
-
-        // send assertion to uC
-        serial.sendAssertion(ta);
-
-        // receive respond
-        auto result_msg = serial.receiveResult(ta);
-
-        // TODO compare results
-        std::cout << "actual: " << result_msg << " - expect: " << ta.get_expected_value() << std::endl;
+        // compare results
+        // TODO cast to float or int and compare
+        std::cout << "actual: " << result_str << " - expect: " << ta.get_expected_value() << std::endl;
 
     }
 
     serial.closePort();
-    return 0;
+
     // TODO print summary
 
     return 0;

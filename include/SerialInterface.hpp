@@ -11,11 +11,7 @@
 class SerialInterface
 {
 public:
-    const int PORTNUM = 0;
-    const int BAUDRATE = 115200;
-    const char* PORTNAME = "/dev/ttyUSB0";
-    const int MAX_ATTEMPTS = 3;
-    const int BUFFER_SIZE = 64;
+
 
     typedef enum {RET, RUN, ERR0, ERR1} MsgType;
 
@@ -32,7 +28,7 @@ public:
     // TODO move elsewhere
     std::pair<std::string,int> extractFunctionInfo(const std::string& msg);
 
-    void sendAssertion(const TeleAssertion& ta);
+    std::string teletestAssertion(const TeleAssertion& ta);
     std::string receiveResult(const TeleAssertion& ta);
 
 

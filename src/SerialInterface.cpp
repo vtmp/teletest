@@ -12,7 +12,7 @@ bool SerialInterface::openPort()
 {
 
     // find port by name
-    sp_get_port_by_name(this->PORTNAME, &m_port_ptr);
+    sp_get_port_by_name(PORTNAME, &m_port_ptr);
 
     // config and open port
     if (m_port_ptr == NULL)
@@ -32,32 +32,13 @@ bool SerialInterface::openPort()
     return m_is_open;
 }
 
-int SerialInterface::requestFunctionInfo()
-{
-    // TODO
-    for (int i=0; i<MAX_ATTEMPTS; ++i)
-    {
-
-
-        for (int j=0; j<100; ++j)
-        {
-            const char* foo = "foo\n\r\0";
-
-            sp_nonblocking_write(m_port_ptr, foo, sizeof(foo));
-            sp_drain(m_port_ptr); //waits till send
-            sp_flush(m_port_ptr, SP_BUF_OUTPUT);
-            usleep(1e5);
-        }
-    }
-
-    return 0;
-}
 
 int SerialInterface::closePort()
 {
     auto return_value = sp_close(m_port_ptr);
     return this->toBool(return_value);
 }
+
 
 void SerialInterface::listPorts()
 {
@@ -69,32 +50,41 @@ void SerialInterface::listPorts()
 }
 
 
-//TODO FIXME does not really belong here
-std::pair<std::string,int> SerialInterface::extractFunctionInfo(const std::string& msg)
-{
-    auto idx_ws = msg.find(' ');
-    auto func_name = msg.substr(0, idx_ws);
-    auto num_args = std::atoi(msg.substr(idx_ws+1).c_str());
-
-    std::cout << func_name << " " << num_args << std::endl;
-
-    return std::pair<std::string,int> (func_name, num_args);
-}
-
-
-void SerialInterface::sendAssertion(const TeleAssertion& ta)
+std::string  SerialInterface::teletestAssertion(const TeleAssertion& ta)
 {
     auto msg = ta.toSerialMsg();
-    this->sendMsg(msg);
-}
 
+    for (int i=0; i<MAX_ATTEMPTS; ++i)
+    {
+        this->sendMsg(msg);
 
-std::string SerialInterface::receiveResult(const TeleAssertion& ta)
-{
-    // example: RET 3.0
-    auto result_msg = receiveMsg();
-    auto idx_ws = result_msg.find(' ');
-    return result_msg.substr(idx_ws+1);
+        // wait for respondse
+        auto response = receiveMsg();
+
+        // try again?
+        if (response == "")
+            continue;
+
+        // evaluate respond
+        auto idx_ws = response.find(' ');
+        auto msg_type = response.substr(0,idx_ws);
+
+        if (msg_type == "RET")
+            return response.substr(idx_ws+1);
+
+        else if(msg_type == "ERR0") // transmitting error, try again
+            continue;
+
+        else if (msg_type == "ERR1") // assertion incorrect, skip
+            break;
+
+        // this should not happen
+        std::cerr << "received " << msg_type << ", try again" << std::endl;
+
+    }
+    std::cerr << "maximum of attempts reached" << std::endl;
+    return "";
+
 }
 
 
@@ -110,6 +100,7 @@ void SerialInterface::sendMsg(const std::string& msg)
     //usleep(1e5); // some extra time?
 }
 
+
 // returns received msg OR nothing
 std::string SerialInterface::receiveMsg()
 {
@@ -120,11 +111,11 @@ std::string SerialInterface::receiveMsg()
     char buffer[BUFFER_SIZE];
 
     // read
-    sp_wait(event, 1e4);
+    sp_wait(event, 1e3);
     if (sp_input_waiting(m_port_ptr) > 0)
     {
         // wait 1 ms
-        usleep(1e5);
+        usleep(1e3);
         sp_nonblocking_read(m_port_ptr, buffer, BUFFER_SIZE);
         std::cout << std::string(buffer) << std::endl;
         sp_flush(m_port_ptr, SP_BUF_INPUT);

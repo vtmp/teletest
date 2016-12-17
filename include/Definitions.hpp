@@ -51,3 +51,12 @@ const unsigned short CRC_TABLE [256] = {
 0x8fd9, 0x9ff8, 0x6e17, 0x7e36, 0x4e55, 0x5e74,
 0x2e93, 0x3eb2, 0x0ed1, 0x1ef0
 };
+
+const static int PORTNUM = 0;
+const static int BAUDRATE = 115200;
+const static char* PORTNAME = "/dev/ttyUSB0";
+const static int BUFFER_SIZE = 64;
+
+const static int MAX_ATTEMPTS = 10;
+
+typedef enum {RET, RUN, ERR0, ERR1} MsgType;

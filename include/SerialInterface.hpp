@@ -6,16 +6,16 @@
 #include <unistd.h>
 #include <string>
 
+#include "ConfigManager.hpp"
+#include "Definitions.hpp"
 #include "TeleAssertion.hpp"
+
 
 class SerialInterface
 {
 public:
 
-
-    typedef enum {RET, RUN, ERR0, ERR1} MsgType;
-
-    SerialInterface();
+    SerialInterface(const ConfigManager &config);
 
     bool openPort();
     int closePort();
@@ -44,6 +44,8 @@ public:
 private:
     struct sp_port *m_port_ptr;
     bool m_is_open;
+    ConfigManager m_config;
+
 
     bool toBool(sp_return return_value);
 

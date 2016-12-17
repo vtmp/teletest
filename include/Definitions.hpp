@@ -52,9 +52,10 @@ const unsigned short CRC_TABLE [256] = {
 0x2e93, 0x3eb2, 0x0ed1, 0x1ef0
 };
 
-const static int PORTNUM = 0;
-const static int BAUDRATE = 115200;
-const static char* PORTNAME = "/dev/ttyUSB0";
+//const static int PORTNUM = 0;
+//const static int BAUDRATE = 115200;
+//const static char* PORTNAME = "/dev/ttyUSB0";
+
 const static int BUFFER_SIZE = 64;
 
 const static int MAX_ATTEMPTS = 10;

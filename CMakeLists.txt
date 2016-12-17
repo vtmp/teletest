@@ -8,12 +8,61 @@ set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall")
 
-# gtest
+# externals
+set(GTEST NO)
+set(DOWNLOAD_EXTERNALS NO)
+
 enable_testing()
-find_package(GTest REQUIRED)
+include(ExternalProject)
+set(EXTERNAL_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/external)
+
+# gtest
+if (GTEST)
+ExternalProject_Add(googletest
+    GIT_REPOSITORY https://github.com/google/googletest
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_LOCATION}
+)
+endif (GTEST)
+
+include_directories(${EXTERNAL_INSTALL_LOCATION}/include)
+link_directories(${EXTERNAL_INSTALL_LOCATION}/lib)
+
 
 # libserialport
-find_library(LIBSERIALPORT_LIBRARIES serialport)
+# TODO FIXMEload externally
+IF (${DOWNLOAD_EXTERNALS})
+    ExternalProject_Add(serialport_tmp
+        GIT_REPOSITORY git://sigrok.org/libserialport
+        GIT_TAG master
+        UPDATE_COMMAND ../${EP_BASE}/serialport_tmp/autogen.sh
+        CONFIGURE_COMMAND ../${EP_BASE}/serialport_tmp/configure --prefix=${EXTERNAL_INSTALL_LOCATION}
+        BUILD_COMMAND make
+        INSTALL_COMMAND make install)
+
+
+    add_library(serialport SHARED IMPORTED)
+    add_dependencies(serialport serialport_tmp)
+
+ELSE (${DOWNLOAD_EXTERNALS})
+    find_library(LIBSERIALPORT_LIBRARIES serialport)
+ENDIF (${DOWNLOAD_EXTERNALS})
+
+#find_library(serialport)
+
+# inih
+ExternalProject_Add(inih_tmp
+    GIT_REPOSITORY https://github.com/benhoyt/inih.git
+    GIT_TAG master
+    UPDATE_COMMAND ""
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND "")
+
+ExternalProject_Get_Property(inih_tmp SOURCE_DIR)
+message(${SOURCE_DIR})
+# TODO FIXME this is not working properly
+include_directories(${SOURCE_DIR}/cpp)
+add_library(inih ${SOURCE_DIR}/cpp/INIReader.cpp)
 
 #message( ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -25,15 +74,14 @@ set(SOURCES
     src/main.cpp
     src/SerialInterface.cpp
     src/TeleAssertion.cpp
-    src/FunctionInfo.cpp
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
-target_link_libraries(${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES} serialport)
+target_link_libraries(${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES} serialport inih)
 
 #TODO add if case
-add_executable(uut_example misc/uut_example.c)
-target_link_libraries(uut_example serialport wiringPi)
+#add_executable(uut_example misc/uut_example.c)
+#target_link_libraries(uut_example serialport wiringPi)
 
 # testing
 #add_test(AllTestsInFoo foo)

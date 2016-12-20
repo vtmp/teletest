@@ -25,27 +25,18 @@ public:
     bool isOpen() {return m_is_open;}
     void listPorts();
 
-    // TODO move elsewhere
-    std::pair<std::string,int> extractFunctionInfo(const std::string& msg);
-
     std::string teletestAssertion(const TeleAssertion& ta);
     std::string receiveResult(const TeleAssertion& ta);
-
-
 
     void sendMsg(const std::string& msg);
     std::string receiveMsg();
 
     unsigned int calculateCrc(const std::string& msg);
 
-    // TODO
-    MsgType parseMsg(const std::string& msg);
-
 private:
     struct sp_port *m_port_ptr;
     bool m_is_open;
     ConfigManager m_config;
-
 
     bool toBool(sp_return return_value);
 

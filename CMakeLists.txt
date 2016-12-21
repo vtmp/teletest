@@ -88,7 +88,7 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 target_link_libraries(${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES} serialport inih)
 
 #TODO add if case
-add_executable(uut_example misc/uut_example.c misc/crc.c)
+add_executable(uut_example misc/uut_example.c misc/crc.c misc/serial.c)
 #target_link_libraries(uut_example serialport wiringPi)
 
 # testing

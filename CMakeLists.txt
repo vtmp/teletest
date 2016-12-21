@@ -88,7 +88,7 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 target_link_libraries(${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES} serialport inih)
 
 #TODO add if case
-#add_executable(uut_example misc/uut_example.c)
+add_executable(uut_example misc/uut_example.c misc/crc.c)
 #target_link_libraries(uut_example serialport wiringPi)
 
 # testing
@@ -96,3 +96,5 @@ target_link_libraries(${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES} serialport inih)
 
 add_executable(crc_example misc/crc_example.c)
 #target_link_libraries(crc_example)
+
+add_executable(foo misc/foo.cpp)

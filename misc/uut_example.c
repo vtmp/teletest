@@ -5,15 +5,65 @@
 
 #include "crc.h"
 
+typedef enum {CHAR, FLOAT, INT} DataType;
+
+const int CRC_MAX_LEN = 8;
+const int STR_MAX_LEN = 64;
+
+int receive_char_by_UART();
+int receive_msg(char* buffer, int length);
+int send_char_by_UART(char c);
+void send_msg(char* buffer, int length);
+int parse_msg(const char* msg, int length);
+int run_assertion(const char* msg);
+
+// testable functions
+float add(float a, float b) {return a+b;}
+float sub(float a, float b) {return a-b;}
+float mult(float a, float b) {return a*b;}
+
+
+typedef struct
+{
+    const char fun_name[10];
+    float (*fun_ptr)(float, float); //TODO fixme use general function pointer and cast
+    int num_args;
+    const DataType type_args[2];
+    const  DataType type_ret;
+} Function;
+
+
+Function functions_under_test[] = {
+    {"add", add, 2, {FLOAT, FLOAT}, FLOAT},
+    {"sub", sub, 2, {FLOAT, FLOAT}, FLOAT},
+    {"mult", mult, 2, {FLOAT, FLOAT}, FLOAT}};
+
+
+int main()
+{
+    for(;;)
+    {
+        // wait for incoming message
+        char msg[STR_MAX_LEN];
+        while (receive_msg(msg, STR_MAX_LEN));
+
+        // run assertion and send results
+        run_assertion(msg);
+    }
+
+    return 0;
+}
+
+
 int receive_char_by_UART()
 {
+    // TODO
     return 0;
 }
 
 int receive_msg(char* buffer, int length)
 {
     // NOTE without termination character the program runs into a deadlock!!!
-    const int CRC_MAX_LEN = 8;
     char crc_str[CRC_MAX_LEN];
     int crc_count = 0;
 
@@ -22,7 +72,7 @@ int receive_msg(char* buffer, int length)
 
 
     // read till crc or unexpected null character
-    while (count < length)
+    while (count < length-1)
     {
         // wait for incoming character
         c = receive_char_by_UART();
@@ -38,6 +88,7 @@ int receive_msg(char* buffer, int length)
         if (c == '\0')
             return 0;
     }
+    buffer[count] = '\0';
 
     while (crc_count < 8)
     {
@@ -60,81 +111,48 @@ int receive_msg(char* buffer, int length)
     return (crc_value_actual == crc_value_expected);
 }
 
-
-typedef enum {CHAR, CSTR, FLOAT, INT} DataType;
-//enum DataType {CHAR, CSTR, FLOAT, INT};
-
-
-typedef struct
+int send_char_by_UART(char c)
 {
-    const char fun_name[10];
-    float (*fun_ptr)(float, float); //TODO fixme use general function pointer and cast
-    int num_args;
-    const DataType type_args[2];
-    const  DataType type_ret;
-} Function;
-
-
-typedef struct
-{
-    int a;
-    void* b;
-} Foo;
-
-
-float add(float a, float b) {return a+b;}
-float sub(float a, float b) {return a-b;}
-float mult(float a, float b) {return a*b;}
-
-
-Function functions_under_test[] = {
-    {"add", add, 2, {FLOAT, FLOAT}, FLOAT},
-    {"sub", sub, 2, {FLOAT, FLOAT}, FLOAT},
-    {"mult", mult, 2, {FLOAT, FLOAT}, FLOAT}};
-
-
-int run_assertion(const char* msg);
-int init_serial();
-int listen_for_assertions(int fd);
-
-
-int main()
-{
-    // some other init
-
-    for(int i=0;i<4;++i)
-    {
-        // some other stuff
-
-
-        // send function info
-        //IF request info THEN send info
-        // wait
-        //IF all send THEN send 'fin'
-        // wait for last ACK
-
-        // testing
-        if (1) // fake receive message
-        {
-            // just an example
-            const char* msg = "0,23de43df:f,3a4a74ef:f"; // fun-id, arg1, arg2
-            run_assertion(msg);
-        }
-
-
-    }
+    // TODO
     return 0;
 }
 
+void send_msg(char* buffer, int length)
+{
+    // ensure that buffer is a valid string
+    buffer[length-1] = '\0';
+
+    // calculate crc
+    unsigned int crc_actual = calc_crc(buffer, length);
+    char crc_actual_str[CRC_MAX_LEN];
+    sprintf(crc_actual_str, "%ld", crc_actual);
+
+    // append crc to msg
+    int new_length = length + CRC_MAX_LEN + 1;
+    char msg[new_length];
+    msg[0] = '\0';
+    strcat(msg, buffer);
+    strcat(msg, "|");
+    strcat(msg, crc_actual_str);
+
+    int count = 0;
+    while (count < new_length && msg[count] != '\0')
+    {
+        send_char_by_UART(msg[count++]);
+    }
+
+    // terminate msg
+    send_char_by_UART('\0');
+}
 
 int parse_msg(const char* msg, int length)
 {
-    // is this needed
+    // is this needed?
 
     return 0;
 }
 
-int run_assertion(const char* msg)
+int run_assertion(char* msg)
 {
     // TODO parse msg
     // run function

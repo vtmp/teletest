@@ -12,7 +12,7 @@ const static int CRC_MAX_LEN = 8;
 int receive_char_by_UART();
 int receive_msg(char* buffer, int length);
 void send_char_by_UART(char c);
-void send_msg(char* buffer, int length);
+void send_msg(char* msg);
 
 
 #endif // SERIAL_H

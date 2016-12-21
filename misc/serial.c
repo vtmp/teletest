@@ -62,28 +62,31 @@ void send_char_by_UART(char c)
     // TODO
 }
 
-void send_msg(char* buffer, int length)
+void send_msg(char* msg)
 {
+    // expect correct string
+    int length = strlen(msg);
+
     // ensure that buffer is a valid string
-    buffer[length-1] = '\0';
+    msg[length-1] = '\0';
 
     // calculate crc
-    unsigned int crc_actual = calc_crc(buffer, length);
+    unsigned int crc_actual = calc_crc(msg, length);
     char crc_actual_str[CRC_MAX_LEN];
-    sprintf(crc_actual_str, "%ld", crc_actual);
+    sprintf(crc_actual_str, "%u", crc_actual);
 
     // append crc to msg
     int new_length = length + CRC_MAX_LEN + 1;
-    char msg[new_length];
-    msg[0] = '\0';
-    strcat(msg, buffer);
-    strcat(msg, "|");
-    strcat(msg, crc_actual_str);
+    char msg_crc[new_length];
+    msg_crc[0] = '\0';
+    strcat(msg_crc, msg);
+    strcat(msg_crc, "|");
+    strcat(msg_crc, crc_actual_str);
 
     int count = 0;
-    while (count < new_length && msg[count] != '\0')
+    while (count < new_length && msg_crc[count] != '\0')
     {
-        send_char_by_UART(msg[count++]);
+        send_char_by_UART(msg_crc[count++]);
     }
 
     // terminate msg

@@ -1,48 +1,63 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <stdlib.h>
 
-#include <wiringPi.h>
-#include <wiringSerial.h>
+#include "crc.h"
 
 int receive_char_by_UART()
 {
     return 0;
 }
 
-int receive_msg(char* buffer, unsigned int length)
+int receive_msg(char* buffer, int length)
 {
-    // NOT VERY SAFE
-    char crc_str[8];
-    char c = 'x';
+    // NOTE without termination character the program runs into a deadlock!!!
+    const int CRC_MAX_LEN = 8;
+    char crc_str[CRC_MAX_LEN];
+    int crc_count = 0;
+
     int count = 0;
-    int read_crc = 0;
+    char c;
 
-    char FIN = '\n';
 
-    while (count < length && c != FIN)
+    // read till crc or unexpected null character
+    while (count < length)
+    {
+        // wait for incoming character
+        c = receive_char_by_UART();
+
+        // crc is starting now
+        if (c == '|')
+            break;
+
+        // save character
+        buffer[count++] = c;
+
+        // unexpected end
+        if (c == '\0')
+            return 0;
+    }
+
+    while (crc_count < 8)
     {
         c = receive_char_by_UART();
 
-        if (c == '|')
-        {
-            read_crc = 1;
-            buffer[count] = '\0';
-            count = 0;
-            continue;
-        }
+        // save character
+        crc_str[crc_count++] = c;
 
-        if (read_crc)
-            buffer[count++] = c;
-        else
-            crc_str[count++] = c;
+        // expected end
+        if (c == '\0')
+            break;
 
     }
-    crc_str[count] = '\0';
 
     // calculate the crc
+    int crc_value_actual = calc_crc(buffer, count);
+    int crc_value_expected = atoi(crc_str);
 
     // compare
+    return (crc_value_actual == crc_value_expected);
 }
 
 
@@ -81,7 +96,7 @@ Function functions_under_test[] = {
 int run_assertion(const char* msg);
 int init_serial();
 int listen_for_assertions(int fd);
-int readMsg();
+
 
 int main()
 {
@@ -112,51 +127,11 @@ int main()
 }
 
 
-int init_serial()
+int parse_msg(const char* msg, int length)
 {
-    int fd = -1;
-    if ((fd = serialOpen ("/dev/ttyAMA0", 115200)) < 0)
-    {
-        fprintf (stderr, "Unable to open serial device: %s\n", strerror (errno)) ;
-        return -1;
-    }
+    // is this needed
 
-    if (wiringPiSetup () == -1)
-    {
-        fprintf (stdout, "Unable to start wiringPi: %s\n", strerror (errno)) ;
-        return 1;
-    }
-    return fd;
-}
-
-
-int listen_for_assertions(int fd)
-{
-    char buffer[128];
-    int idx = readMsg(fd, buffer, 128);
-    printf("%s\n", &buffer);
-}
-
-
-int readMsg(int fd, char* str, int count)
-{
-    int idx = 0;
-    unsigned int timeout = millis()+5;
-    char c = 'x';
-
-    while (millis() < timeout && c != '\0' && idx<count)
-    {
-        if (serialDataAvail(fd))
-        {
-            c = serialGetchar(fd);
-            str[idx] = c;
-            timeout = millis()+5;
-            idx++;
-        }
-    }
-    str[idx] = '\0';
-
-    return idx;
+    return 0;
 }
 
 int run_assertion(const char* msg)

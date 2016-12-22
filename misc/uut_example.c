@@ -3,13 +3,11 @@
 #include "string.h"
 #include "stdio.h"
 
+#define STR_MAX_LEN 64
+#define MAX_ARGS 5
+#define MAX_ARG_LEN 10
+
 typedef enum {CHAR, FLOAT, INT} DataType;
-
-
-const int STR_MAX_LEN = 64;
-
-int parse_msg(const char* msg, int length);
-
 
 // testable functions
 float add(float a, float b) {return a+b;}
@@ -33,14 +31,23 @@ typedef struct
     DataType type;
 } ReturnValue;
 
+typedef struct
+{
+    char func_name[16];
+    char arg_list[MAX_ARGS][MAX_ARG_LEN];
+    int num_args;
+    int valid;
+} AssertionInfo;
+
 
 Function functions_under_test[] = {
     {"add", add, 2, {FLOAT, FLOAT}, FLOAT},
     {"sub", sub, 2, {FLOAT, FLOAT}, FLOAT},
     {"mult", mult, 2, {FLOAT, FLOAT}, FLOAT}};
 
-ReturnValue run_assertion(char *msg);
-void send_result(ReturnValue* ret_value_ptr);
+int parse_from_assertion_msg(char* msg, AssertionInfo* info_ptr);
+int run_assertion(AssertionInfo *info_ptr, ReturnValue *ret_val_ptr);
+void parse_to_result_msg(ReturnValue* ret_value_ptr, char* msg);
 
 
 int main()
@@ -56,29 +63,62 @@ int main()
         }
 
         // run assertion
-        ReturnValue ret_val = run_assertion(msg);
-        if (ret_val.valid == 0)
+        AssertionInfo info;
+        int success = parse_from_assertion_msg(msg, &info);
+        if (success == 0)
         {
-            send_msg("ERR1"); // bad assertion
+            send_msg("ERR1"); // bad assertion 1
+            continue;
+        }
+
+        ReturnValue ret_val;
+
+        success = run_assertion(&info, &ret_val);
+        if (success == 0)
+        {
+            send_msg("ERR2"); // bad assertion 2
             continue;
         }
 
         // send results
-        send_result(&ret_val);
+        char result_msg[STR_MAX_LEN];
+        parse_to_result_msg(&ret_val, result_msg);
+        send_msg(result_msg);
 
     }
 
     return 0;
 }
 
-int parse_msg(const char* msg, int length)
+int parse_from_assertion_msg(char* assertion_msg, AssertionInfo *info_ptr)
 {
-    // is this needed?
 
-    return 0;
+    char* token = strtok(assertion_msg, " ");
+
+    if (strcmp(token, "RUN") != 0)
+        return 0;
+
+
+    // get function name, is this save?
+    token = strtok(NULL, " ");
+    strcpy(info_ptr->func_name, token);
+    token = strtok(NULL, " ");
+
+    // get all arguments
+    int count = 0;
+    while (token && count < MAX_ARGS)
+    {
+        strcpy(info_ptr->arg_list[count++], token);
+        token = strtok(NULL, " ");
+    }
+
+    info_ptr->num_args = count;
+    info_ptr->valid = 1;
+
+    return 1;
 }
 
-// NOT READY
+// UNUSED, NOT READY YET
 int run_function(char **arg_list, ReturnValue* ret_val_ptr)
 {
     // TODO FIXME how can you pass function pointer with unknown arguments
@@ -87,70 +127,39 @@ int run_function(char **arg_list, ReturnValue* ret_val_ptr)
     ret_val_ptr->type = FLOAT;
 }
 
-ReturnValue run_assertion(char* msg)
+int run_assertion(AssertionInfo* info_ptr, ReturnValue* ret_val_ptr)
 {
     // TODO parse msg
     // strok
-    ReturnValue ret_val;
+    //ReturnValue ret_val;
 
-    char fun_name[20];
-
-    const int MAX_ARGS = 5;
-    const int MAX_ARG_LEN = 10;
-    char arg_list[MAX_ARGS][MAX_ARG_LEN];
-
-
-    char* token = strtok(msg, " ");
-    if (strcmp(token, "RUN") == 0)
+    if (strcmp(info_ptr->func_name, "add") == 0)
     {
-        // get function name, is this save?
-        token = strtok(NULL, " ");
-        strcpy(fun_name, token);
-        token = strtok(NULL, " ");
-
-        // get all arguments
-        int count = 0;
-        while (token && count < MAX_ARGS)
-        {
-            strcpy(arg_list[count++], token);
-            printf("%s\n", &token);
-            token = strtok(NULL, " ");
-        }
-
-        //functions_under_test
-        // NOT SAFE, TODO FIXME,
-        // TODO FIXME no good design
-        if (strcmp(fun_name, "add") == 0)
-        {
-            ret_val.fval = add(atof(arg_list[0]), atof(arg_list[1]));
-            ret_val.valid = 1;
-            ret_val.type = FLOAT;
-
-        }
-        if (strcmp(fun_name, "sub") == 0)
-        {
-            ret_val.fval = sub(atof(arg_list[0]), atof(arg_list[1]));
-            ret_val.valid = 1;
-            ret_val.type = FLOAT;
-        }
-        if (strcmp(fun_name, "mult") == 0)
-        {
-            ret_val.fval = sub(atof(arg_list[0]), atof(arg_list[1]));
-            ret_val.valid = 1;
-            ret_val.type = FLOAT;
-        }
-
+        ret_val_ptr->fval = add(atof(info_ptr->arg_list[0]), atof(info_ptr->arg_list[1]));
+        ret_val_ptr->type = FLOAT;
+        return 1;
+    }
+    if (strcmp(info_ptr->func_name, "sub") == 0)
+    {
+        ret_val_ptr->fval = sub(atof(info_ptr->arg_list[0]), atof(info_ptr->arg_list[1]));
+        ret_val_ptr->type = FLOAT;
+        return 1;
+    }
+    if (strcmp(info_ptr->func_name, "mult") == 0)
+    {
+        ret_val_ptr->fval = sub(atof(info_ptr->arg_list[0]), atof(info_ptr->arg_list[1]));
+        ret_val_ptr->type = FLOAT;
+        return 1;
     }
 
-    return ret_val;
+    return 0;
 }
 
-void send_result(ReturnValue* ret_value_ptr)
+void parse_to_result_msg(ReturnValue* ret_value_ptr, char* result_msg)
 {
     char ret_value_str[16];
     ret_value_str[0] = '\0';
 
-    char result_msg[STR_MAX_LEN];
     strcpy(result_msg, "RET ");
 
     if (ret_value_ptr->type == FLOAT)
@@ -161,5 +170,4 @@ void send_result(ReturnValue* ret_value_ptr)
 
     strcat(result_msg, ret_value_str);
 
-    send_msg(result_msg);
 }

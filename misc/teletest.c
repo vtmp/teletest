@@ -3,7 +3,6 @@
 
 int parse_from_assertion_msg(char* assertion_msg, AssertionInfo *info_ptr)
 {
-
     char* token = strtok(assertion_msg, " ");
 
     if (strcmp(token, "RUN") != 0)

@@ -6,19 +6,15 @@
 #include "teletest.h"
 #include "teletest.c" // TODO FIXME this is very ugly! but it solves the linker problem
 
+float result_msg_to_float(char* result_msg);
 
+TEST (teletest_uc, correct_assertion)
+{
 
-TEST (teletest_uc, calc_crc) {
-
-    std::string foo = "RUN add 0.1 0.2";
-    std::vector<char> foo2(foo.begin(), foo.end());
-    foo2.push_back('\0');
-
-    char* msg = &foo2[0];
+    char assertion_msg[] = "RUN add 0.1 0.2";
     AssertionInfo info;
 
-    // is const char* here ok?
-    int success = parse_from_assertion_msg(msg, &info);
+    int success = parse_from_assertion_msg(assertion_msg, &info);
     EXPECT_TRUE (success);
     EXPECT_STREQ (info.func_name, "add");
     EXPECT_STREQ (info.arg_list[0], "0.1");
@@ -31,9 +27,47 @@ TEST (teletest_uc, calc_crc) {
     EXPECT_EQ (ret_value.type, FLOAT);
 
     char result_msg[20];
-    char ret_value_str[16];
     parse_to_result_msg(&ret_value, result_msg);
-    memcpy(ret_value_str, &result_msg[4], 16);
-    EXPECT_FLOAT_EQ (atof(ret_value_str), 0.3f);
+    EXPECT_FLOAT_EQ (result_msg_to_float(result_msg), 0.3f);
 
-} //*/
+}
+
+TEST (teletest_uc, bad_message) // ERR1
+{
+    char assertion_msg[] = "FOO add 0.1 0.2";
+    AssertionInfo info;
+
+    int success = parse_from_assertion_msg(assertion_msg, &info);
+    EXPECT_FALSE (success);
+}
+
+TEST (teletest_uc, not_testable) // ERR2
+{
+    char assertion_msg[] = "RUN div -0.1 0.2";
+    AssertionInfo info;
+    strcpy(info.func_name, "div");
+    strcpy(info.arg_list[0], "-0.1");
+    strcpy(info.arg_list[1], "0.2");
+
+    ReturnValue ret_value;
+    int success = run_assertion(&info, &ret_value);
+    EXPECT_FALSE (success);
+}
+
+TEST (teletest_uc, parse_to_result)
+{
+    ReturnValue ret_value;
+    ret_value.fval = 9.999;
+    ret_value.type = FLOAT;
+
+    char result_msg[20];
+    parse_to_result_msg(&ret_value, result_msg);
+    EXPECT_FLOAT_EQ (result_msg_to_float(result_msg), ret_value.fval);
+}
+
+float result_msg_to_float(char* result_msg)
+{
+    char ret_value_str[16];
+    memcpy(ret_value_str, &result_msg[4], 16);
+    return atof(ret_value_str);
+}

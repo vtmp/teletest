@@ -3,10 +3,13 @@ cmake_minimum_required(VERSION 2.8)
 
 # options
 option(DOWNLOAD_GTEST "DOWNLOAD_GTEST" OFF)
+option(INCLUDE_GTESTS "INCLUDE_GTESTS" ON)
+
 option(DOWNLOAD_SERIALPORT "DOWNLOAD_LIBSERIAL" OFF)
 
 # c++11
-set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
+SET(CMAKE_CXX_STANDARD 11)
+SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # debug symbols
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
@@ -19,15 +22,19 @@ include(ExternalProject)
 set(EXTERNAL_INSTALL_LOCATION ${CMAKE_BINARY_DIR}/external)
 
 # gtest
-IF (${DOWNLOAD_GTEST})
+IF (${INCLUDE_GTEST})
+    IF (${DOWNLOAD_GTEST})
 
-    ExternalProject_Add(googletest
-        GIT_REPOSITORY https://github.com/google/googletest
-        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_LOCATION})
+        ExternalProject_Add(googletest
+            GIT_REPOSITORY https://github.com/google/googletest
+            CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_LOCATION})
 
-    include_directories(${EXTERNAL_INSTALL_LOCATION}/include)
-    link_directories(${EXTERNAL_INSTALL_LOCATION}/lib)
-ENDIF (${DOWNLOAD_GTEST})
+        include_directories(${EXTERNAL_INSTALL_LOCATION}/include)
+        link_directories(${EXTERNAL_INSTALL_LOCATION}/lib)
+    ELSEIF (${DOWNLOAD_GTEST})
+        find_package(GTest GMock REQUIRED)
+    ENDIF (${DOWNLOAD_GTEST})
+ENDIF (${INCLUDE_GTEST})
 
 # libserialport
 IF (${DOWNLOAD_SERIALPORT})
@@ -75,7 +82,10 @@ find_library(INIH inih)
 
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${GTEST_INCLUDE_DIRS})
+    ${CMAKE_CURRENT_SOURCE_DIR}/misc
+    ${CMAKE_CURRENT_SOURCE_DIR}/test
+    ${GTEST_INCLUDE_DIRS}
+    ${GMOCK_INCLUDE_DIRS})
 
 set(SOURCES
     src/main.cpp
@@ -84,17 +94,35 @@ set(SOURCES
     src/TeleAssertion.cpp
 )
 
+set(SOURCES_C
+    misc/crc.c
+    misc/serial.c
+    misc/teletest.c)
+
 add_executable(${PROJECT_NAME} ${SOURCES})
 target_link_libraries(${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES} serialport inih)
 
 #TODO add if case
-add_executable(uut_example misc/uut_example.c misc/crc.c misc/serial.c)
+add_executable(uut_example misc/uut_example.c ${SOURCES_C})
 #target_link_libraries(uut_example serialport wiringPi)
-
-# testing
-#add_test(AllTestsInFoo foo)
 
 add_executable(crc_example misc/crc_example.c)
 #target_link_libraries(crc_example)
 
 add_executable(foo misc/foo.cpp)
+
+# testing
+IF (${INCLUDE_GTESTS})
+    include_directories(misc)
+
+    add_executable(test_uc test/test_uc.cpp misc/serial misc/teletest.c ${SOURCES_C})
+    #add_executable(foobar misc/test_uc.cpp ${SOURCES_C})
+    target_link_libraries(test_uc gtest gtest_main)
+    #add_test(unit_test test_uc)
+
+    add_executable(test_serial_util test/serial_util.cpp ${SOURCES})
+    target_link_libraries(test_serial_util inih serialport gtest gtest_main)
+    add_test(unit_test test_pc)
+
+
+ENDIF (${INCLUDE_GTESTS})

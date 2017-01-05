@@ -2,7 +2,12 @@
 #include <vector>
 #include <gtest/gtest.h>
 //#include <gmock/gmock.h>
+#include <iostream>
 
+#include "crc.h"
+#include "crc.c"
+#include "serial.h"
+#include "serial.c"
 #include "teletest.h"
 #include "teletest.c" // TODO FIXME this is very ugly! but it solves the linker problem
 
@@ -29,6 +34,33 @@ TEST (teletest_uc, correct_assertion)
     char result_msg[20];
     parse_to_result_msg(&ret_value, result_msg);
     EXPECT_FLOAT_EQ (result_msg_to_float(result_msg), 0.3f);
+
+}
+
+TEST (teletest_uc, crc_correct_check)
+{
+    char assertion_msg[] = "RUN add 0.1 0.2";
+    unsigned int crc_actual = calc_crc(assertion_msg, strlen(assertion_msg));
+    char crc_actual_str[CRC_MAX_LEN];
+    sprintf(crc_actual_str, "%u", crc_actual);
+
+    char assertion_str[STR_MAX_LEN];
+
+    // TODO create msg_crc_concat function
+    strcpy(assertion_str, assertion_msg);
+    strcat(assertion_str, "|");
+    strcat(assertion_str, crc_actual_str);
+
+    char msg_out[STR_MAX_LEN];
+
+    std::cout << assertion_str << std::endl;
+
+    EXPECT_TRUE(verify_and_split_str(assertion_str, msg_out));
+    std::cout << msg_out << std::endl;
+
+    //EXPECT_STREQ(assertion_msg, msg_out);
+
+
 
 }
 

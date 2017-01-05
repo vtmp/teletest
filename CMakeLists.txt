@@ -115,7 +115,7 @@ add_executable(foo misc/foo.cpp)
 IF (${INCLUDE_GTESTS})
     include_directories(misc)
 
-    add_executable(test_uc test/test_uc.cpp misc/serial misc/teletest.c ${SOURCES_C})
+    add_executable(test_uc test/test_uc.cpp ${SOURCES_C})
     #add_executable(foobar misc/test_uc.cpp ${SOURCES_C})
     target_link_libraries(test_uc gtest gtest_main)
     #add_test(unit_test test_uc)

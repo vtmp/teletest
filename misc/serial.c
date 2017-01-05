@@ -7,15 +7,11 @@ int receive_char_by_UART()
     return 0;
 }
 
-int receive_msg(char* buffer, int length)
+int receive_str_by_UART(char* buffer, int length)
 {
-    // NOTE without termination character the program runs into a deadlock!!!
-    char crc_str[CRC_MAX_LEN];
-    int crc_count = 0;
-
+    // NOTE without termination character the program could run into a deadlock
     int count = 0;
     char c;
-
 
     // read till crc or unexpected null character
     while (count < length-1)
@@ -23,38 +19,60 @@ int receive_msg(char* buffer, int length)
         // wait for incoming character
         c = receive_char_by_UART();
 
-        // crc is starting now
-        if (c == '|')
-            break;
-
         // save character
         buffer[count++] = c;
 
         // unexpected end
         if (c == '\0')
-            return 0;
+            return 1;
     }
+
+    // str reach max len
     buffer[count] = '\0';
+    return 0;
+}
 
-    while (crc_count < 8)
-    {
-        c = receive_char_by_UART();
+// expects a string with termination char
+int verify_and_split_str(char* str_in, char* msg_out)
+{
+    char crc_str[CRC_MAX_LEN];
 
-        // save character
-        crc_str[crc_count++] = c;
+    char* token = strtok(str_in, "|");
 
-        // expected end
-        if (c == '\0')
-            break;
+    // malformed str
+    if (token == NULL)
+        return 0;
 
-    }
+    // copy msg
+    strcpy(msg_out, token);
 
-    // calculate the crc
-    int crc_value_actual = calc_crc(buffer, count);
+    token = strtok(NULL, "|");
+
+    // no splitting char found
+    if (token == NULL)
+        return 0;
+
+    printf("%s\n", token);
+
+    // copy crc str
+    strcpy(crc_str, token);
+
+
+    int crc_value_actual = calc_crc(msg_out, strlen(msg_out));
     int crc_value_expected = atoi(crc_str);
 
     // compare
     return (crc_value_actual == crc_value_expected);
+
+}
+
+
+int receive_msg(char* msg_out, int length)
+{
+
+    char buffer[length];
+    receive_str_by_UART(buffer, length);
+    return verify_and_split_str(buffer, msg_out);
 }
 
 void send_char_by_UART(char c)

@@ -48,6 +48,6 @@ static const unsigned short crc_table [256] = {
 0x2e93, 0x3eb2, 0x0ed1, 0x1ef0
 }; //*/
 
-unsigned int calc_crc(unsigned char *data, unsigned int length);
+unsigned int calc_crc(char *data, unsigned int length);
 
 #endif // CRC_H

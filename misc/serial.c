@@ -88,25 +88,29 @@ void send_msg(char* msg)
     // ensure that buffer is a valid string
     msg[length-1] = '\0';
 
-    // calculate crc
-    unsigned int crc_actual = calc_crc(msg, length);
-    char crc_actual_str[CRC_MAX_LEN];
-    sprintf(crc_actual_str, "%u", crc_actual);
+    char msg_crc_str[STR_MAX_LEN];
+    msg_crc_concat(msg, msg_crc_str);
 
-    // append crc to msg
-    int new_length = length + CRC_MAX_LEN + 1;
-    char msg_crc[new_length];
-    msg_crc[0] = '\0';
-    strcat(msg_crc, msg);
-    strcat(msg_crc, "|");
-    strcat(msg_crc, crc_actual_str);
 
     int count = 0;
-    while (count < new_length && msg_crc[count] != '\0')
+    while (msg_crc_str[count] != '\0')
     {
-        send_char_by_UART(msg_crc[count++]);
+        send_char_by_UART(msg_crc_str[count++]);
     }
 
     // terminate msg
     send_char_by_UART('\0');
+}
+
+void msg_crc_concat(char* msg_in, char* str_out)
+{
+    // calculate crc and cast to cstr
+    unsigned int crc_actual = calc_crc(msg_in, strlen(msg_in));
+    char crc_actual_str[8];
+    sprintf(crc_actual_str, "%u", crc_actual);
+
+    // concat msg with crc
+    strcpy(str_out, msg_in);
+    strcat(str_out, "|");
+    strcat(str_out, crc_actual_str);
 }

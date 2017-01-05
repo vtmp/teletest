@@ -40,16 +40,9 @@ TEST (teletest_uc, correct_assertion)
 TEST (teletest_uc, crc_correct_check)
 {
     char assertion_msg[] = "RUN add 0.1 0.2";
-    unsigned int crc_actual = calc_crc(assertion_msg, strlen(assertion_msg));
-    char crc_actual_str[CRC_MAX_LEN];
-    sprintf(crc_actual_str, "%u", crc_actual);
-
     char assertion_str[STR_MAX_LEN];
 
-    // TODO create msg_crc_concat function
-    strcpy(assertion_str, assertion_msg);
-    strcat(assertion_str, "|");
-    strcat(assertion_str, crc_actual_str);
+    msg_crc_concat(assertion_msg, assertion_str);
 
     char msg_out[STR_MAX_LEN];
 

@@ -18,5 +18,6 @@ int receive_msg(char* msg_out, int length);
 void send_char_by_UART(char c);
 void send_msg(char* msg);
 
+void msg_crc_concat(char* msg_in, char* str_out);
 
 #endif // SERIAL_H

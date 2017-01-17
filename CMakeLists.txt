@@ -89,6 +89,7 @@ include_directories(
 
 set(SOURCES_CPP
     src/ConfigManager.cpp
+    src/CrcUtil.cpp
     src/SerialInterface.cpp
     src/TeleAssertion.cpp
 )

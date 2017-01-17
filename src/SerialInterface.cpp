@@ -51,6 +51,7 @@ void SerialInterface::listPorts()
 }
 
 
+// TODO make testable, HOW?
 std::string  SerialInterface::teletestAssertion(const TeleAssertion& ta)
 {
     auto msg = ta.toSerialMsg();
@@ -60,7 +61,7 @@ std::string  SerialInterface::teletestAssertion(const TeleAssertion& ta)
         this->sendMsg(msg);
 
         // wait for respondse
-        auto response = receiveMsg();
+        auto response = receive_str();
 
         // try again?
         if (response == "")
@@ -88,12 +89,10 @@ std::string  SerialInterface::teletestAssertion(const TeleAssertion& ta)
 
 }
 
-
 void SerialInterface::sendMsg(const std::string& msg)
 {
-    // append crc
-    auto crc = calculateCrc(msg);
-    std::string msg_crc = msg + CRC_DELIMITER + std::to_string(crc);
+    CrcUtil util;
+    auto msg_crc = util.append_crc(msg);
 
     sp_nonblocking_write(m_port_ptr, msg_crc.c_str(), msg_crc.size());
     sp_drain(m_port_ptr); //waits till send
@@ -101,9 +100,8 @@ void SerialInterface::sendMsg(const std::string& msg)
     //usleep(1e5); // some extra time?
 }
 
-
 // returns received msg OR nothing
-std::string SerialInterface::receiveMsg()
+std::string SerialInterface::receive_str()
 {
     // setup event
     sp_event_set *event;
@@ -124,26 +122,8 @@ std::string SerialInterface::receiveMsg()
 
     sp_free_event_set(event);
 
-    // check for errors
-    auto msg_crc = std::string(buffer);
-    auto crc_delimiter_idx = msg_crc.find(CRC_DELIMITER);
-
-    if (crc_delimiter_idx == std::string::npos)
-        return "";
-
-    auto msg = msg_crc.substr(0, crc_delimiter_idx);
-    unsigned int crc_actual = stoi(msg_crc.substr(crc_delimiter_idx+1));
-    std::cout << crc_actual << std::endl;
-
-    auto crc_expected = calculateCrc(msg);
-    std::cout << msg << "|" << crc_expected << std::endl;
-
-    if (crc_actual != crc_expected)
-        return "";
-
-    return msg;
+    return std::string(buffer);
 }
-
 
 bool SerialInterface::toBool(sp_return return_value)
 {
@@ -171,24 +151,4 @@ bool SerialInterface::toBool(sp_return return_value)
     }
 
     return false;
-}
-
-
-unsigned int SerialInterface::calculateCrc(const std::string& msg)
-{
-    std::vector<unsigned char> buff(msg.begin(), msg.end());
-
-    unsigned char* data = &buff[0];
-    unsigned int crc = 0xffff;
-    unsigned int length = msg.length();
-    unsigned int count;
-    unsigned int temp;
-
-    for (count = 0; count < length; ++count)
-    {
-      temp = (*data++ ^ (crc >> 8)) & 0xff;
-      crc = CRC_TABLE[temp] ^ (crc << 8);
-    }
-
-    return crc & 0xffff;
 }

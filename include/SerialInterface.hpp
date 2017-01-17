@@ -7,9 +7,12 @@
 #include <string>
 
 #include "ConfigManager.hpp"
-#include "Definitions.hpp"
+//#include "Definitions.hpp"
 #include "TeleAssertion.hpp"
+#include "CrcUtil.hpp"
 
+const static int BUFFER_SIZE = 64;
+const static int MAX_ATTEMPTS = 10;
 
 class SerialInterface
 {
@@ -29,9 +32,7 @@ public:
     std::string receiveResult(const TeleAssertion& ta);
 
     void sendMsg(const std::string& msg);
-    std::string receiveMsg();
-
-    unsigned int calculateCrc(const std::string& msg);
+    std::string receive_str();
 
 private:
     struct sp_port *m_port_ptr;

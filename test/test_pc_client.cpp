@@ -36,7 +36,7 @@ TEST (TestPcClient, valid_crc_append)
     auto assertion_msg = ta.toSerialMsg();
 
     CrcUtil util;
-    auto crc = util.calculateCrc(assertion_msg);
+    auto crc = util.calculate_crc(assertion_msg);
     std::string msg_crc = assertion_msg + CRC_DELIMITER + std::to_string(crc);
 
     std::string verified_msg = util.verify_and_split_str(msg_crc);

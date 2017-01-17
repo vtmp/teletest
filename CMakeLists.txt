@@ -104,26 +104,18 @@ add_executable(${PROJECT_NAME}
     ${SOURCES_CPP})
 target_link_libraries(${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES} serialport inih)
 
-#TODO add if case
-add_executable(uut_example misc/uut_example.c ${SOURCES_C})
-#target_link_libraries(uut_example serialport wiringPi)
-
-add_executable(crc_example misc/crc_example.c)
-#target_link_libraries(crc_example)
-
-add_executable(foo misc/foo.cpp)
 
 # testing
 IF (${INCLUDE_GTESTS})
     include_directories(misc)
 
-    add_executable(test_uc test/test_uc.cpp ${SOURCES_C})
-    target_link_libraries(test_uc gtest gtest_main)
-    #add_test(unit_test test_uc)
+    add_executable(test_uc_server test/test_uc_server.cpp ${SOURCES_C})
+    target_link_libraries(test_uc_server gtest gtest_main)
+    add_test(unit_test test_uc_server)
 
     add_executable(test_pc_client test/test_pc_client.cpp ${SOURCES_CPP})
     target_link_libraries(test_pc_client gtest gtest_main inih serialport)
-    #add_test(unit_test test_pc_client)
+    add_test(unit_test test_pc_client)
 
 
 ENDIF (${INCLUDE_GTESTS})

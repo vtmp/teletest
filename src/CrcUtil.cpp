@@ -3,7 +3,7 @@
 
 std::string CrcUtil::append_crc(const std::string &input_msg)
 {
-    auto crc = this->calculateCrc(input_msg);
+    auto crc = this->calculate_crc(input_msg);
     return input_msg + CRC_DELIMITER + std::to_string(crc);
 }
 
@@ -18,7 +18,7 @@ std::string CrcUtil::verify_and_split_str(const std::string& input_str)
     unsigned int crc_actual = stoi(input_str.substr(crc_delimiter_idx+1));
     std::cout << crc_actual << std::endl;
 
-    auto crc_expected = calculateCrc(msg);
+    auto crc_expected = calculate_crc(msg);
     std::cout << msg << "|" << crc_expected << std::endl;
 
     if (crc_actual != crc_expected)
@@ -28,7 +28,7 @@ std::string CrcUtil::verify_and_split_str(const std::string& input_str)
 }
 
 
-unsigned int CrcUtil::calculateCrc(const std::string& msg)
+unsigned int CrcUtil::calculate_crc(const std::string& msg)
 {
     std::vector<unsigned char> buff(msg.begin(), msg.end());
 

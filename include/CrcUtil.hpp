@@ -12,7 +12,7 @@ class CrcUtil
 public:
     std::string append_crc(const std::string& input_msg);
     std::string verify_and_split_str(const std::string& input_str);
-    unsigned int calculateCrc(const std::string& msg);
+    unsigned int calculate_crc(const std::string& msg);
 
 private:
 

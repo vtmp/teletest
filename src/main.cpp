@@ -20,8 +20,8 @@ int main(int argc, char *argv[])
     //serial.list_ports();
 
     // send request
-    serial.openPort();
-    if (serial.isOpen() == false)
+    serial.open_port();
+    if (serial.is_open() == false)
         exit(1); // error -> quit
 
 
@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
 
 
         // send & receive assertion from uC
-        auto result_str = serial.teletestAssertion(ta);
+        auto result_str = serial.teletest_assertion(ta);
 
         // compare results
         // TODO cast to float or int and compare
@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
 
     }
 
-    serial.closePort();
+    serial.close_port();
 
     // TODO print summary
 

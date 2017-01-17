@@ -9,7 +9,7 @@ SerialInterface::SerialInterface(const ConfigManager& config) :
 }
 
 
-bool SerialInterface::openPort()
+bool SerialInterface::open_port()
 {
 
     // find port by name
@@ -29,19 +29,19 @@ bool SerialInterface::openPort()
     sp_set_flowcontrol(m_port_ptr, SP_FLOWCONTROL_NONE);
 
     auto return_value = sp_open(m_port_ptr, SP_MODE_READ_WRITE);
-    m_is_open = this->toBool(return_value);
+    m_is_open = this->to_bool(return_value);
     return m_is_open;
 }
 
 
-int SerialInterface::closePort()
+int SerialInterface::close_port()
 {
     auto return_value = sp_close(m_port_ptr);
-    return this->toBool(return_value);
+    return this->to_bool(return_value);
 }
 
 
-void SerialInterface::listPorts()
+void SerialInterface::list_ports()
 {
     struct sp_port **ports;
     sp_list_ports(&ports);
@@ -52,13 +52,13 @@ void SerialInterface::listPorts()
 
 
 // TODO make testable, HOW?
-std::string  SerialInterface::teletestAssertion(const TeleAssertion& ta)
+std::string  SerialInterface::teletest_assertion(const TeleAssertion& ta)
 {
     auto msg = ta.toSerialMsg();
 
     for (int i=0; i<MAX_ATTEMPTS; ++i)
     {
-        this->sendMsg(msg);
+        this->send_msg(msg);
 
         // wait for respondse
         auto response = receive_str();
@@ -89,7 +89,7 @@ std::string  SerialInterface::teletestAssertion(const TeleAssertion& ta)
 
 }
 
-void SerialInterface::sendMsg(const std::string& msg)
+void SerialInterface::send_msg(const std::string& msg)
 {
     CrcUtil util;
     auto msg_crc = util.append_crc(msg);
@@ -125,7 +125,7 @@ std::string SerialInterface::receive_str()
     return std::string(buffer);
 }
 
-bool SerialInterface::toBool(sp_return return_value)
+bool SerialInterface::to_bool(sp_return return_value)
 {
     switch(return_value)
     {

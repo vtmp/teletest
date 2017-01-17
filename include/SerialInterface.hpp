@@ -7,7 +7,6 @@
 #include <string>
 
 #include "ConfigManager.hpp"
-//#include "Definitions.hpp"
 #include "TeleAssertion.hpp"
 #include "CrcUtil.hpp"
 
@@ -20,18 +19,16 @@ public:
 
     SerialInterface(const ConfigManager &config);
 
-    bool openPort();
-    int closePort();
+    bool open_port();
+    int close_port();
 
-    int requestFunctionInfo();
+    bool is_open() {return m_is_open;}
+    void list_ports();
 
-    bool isOpen() {return m_is_open;}
-    void listPorts();
+    std::string teletest_assertion(const TeleAssertion& ta);
+    std::string receive_result(const TeleAssertion& ta);
 
-    std::string teletestAssertion(const TeleAssertion& ta);
-    std::string receiveResult(const TeleAssertion& ta);
-
-    void sendMsg(const std::string& msg);
+    void send_msg(const std::string& msg);
     std::string receive_str();
 
 private:
@@ -39,7 +36,7 @@ private:
     bool m_is_open;
     ConfigManager m_config;
 
-    bool toBool(sp_return return_value);
+    bool to_bool(sp_return return_value);
 
 
 };

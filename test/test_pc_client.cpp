@@ -10,7 +10,7 @@ TEST (TestPcClient, valid_to_str)
 
     TeleAssertion ta("RUN foo WITH 1.5 5.1 EXPECT 0");
     EXPECT_TRUE(ta.syntax_is_valid());
-    EXPECT_STREQ(ta.toSerialMsg().c_str(), "RUN foo 1.5 5.1");
+    EXPECT_STREQ(ta.to_serial_msg().c_str(), "RUN foo 1.5 5.1");
 }
 
 // test nonvalid assertions
@@ -33,7 +33,7 @@ TEST (TestPcClient, valid_crc_append)
     TeleAssertion ta("RUN foo WITH 1.5 5.1 EXPECT 0");
     EXPECT_TRUE(ta.syntax_is_valid());
 
-    auto assertion_msg = ta.toSerialMsg();
+    auto assertion_msg = ta.to_serial_msg();
 
     CrcUtil util;
     auto crc = util.calculate_crc(assertion_msg);

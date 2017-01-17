@@ -1,12 +1,12 @@
 #include "TeleAssertion.hpp"
 
-TeleAssertion::TeleAssertion(std::string str_assertion)
+TeleAssertion::TeleAssertion(const std::__cxx11::string &str_assertion)
 {
     m_syntax_is_valid = this->parse_syntax(str_assertion);
 }
 
 //TODO write test for this function
-bool TeleAssertion::parse_syntax(std::string str_assertion)
+bool TeleAssertion::parse_syntax(const std::string &str_assertion)
 {
     std::istringstream iss(str_assertion);
     std::vector<std::string> vec_of_str_assertion(std::istream_iterator<std::string>{iss},
@@ -38,12 +38,11 @@ bool TeleAssertion::parse_syntax(std::string str_assertion)
     {
         return false;
     }
-    // TODO parse
 
     return true;
 }
 
-std::string TeleAssertion::toSerialMsg() const
+std::string TeleAssertion::to_serial_msg() const
 {
     std::ostringstream oss;
     oss << "RUN " << this->m_function_name;
@@ -51,4 +50,9 @@ std::string TeleAssertion::toSerialMsg() const
         oss << " " << s;
 
     return oss.str();
+}
+
+bool TeleAssertion::compare_values(const std::string& return_value_str)
+{
+    return false;
 }

@@ -54,7 +54,7 @@ void SerialInterface::list_ports()
 // TODO make testable, HOW?
 std::string  SerialInterface::teletest_assertion(const TeleAssertion& ta)
 {
-    auto msg = ta.toSerialMsg();
+    auto msg = ta.to_serial_msg();
 
     for (int i=0; i<MAX_ATTEMPTS; ++i)
     {

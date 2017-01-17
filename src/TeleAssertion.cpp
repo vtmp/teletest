@@ -5,6 +5,7 @@ TeleAssertion::TeleAssertion(std::string str_assertion)
     m_syntax_is_valid = this->parse_syntax(str_assertion);
 }
 
+//TODO write test for this function
 bool TeleAssertion::parse_syntax(std::string str_assertion)
 {
     std::istringstream iss(str_assertion);
@@ -35,7 +36,7 @@ bool TeleAssertion::parse_syntax(std::string str_assertion)
     }
     else
     {
-
+        return false;
     }
     // TODO parse
 

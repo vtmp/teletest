@@ -87,8 +87,7 @@ include_directories(
     ${GTEST_INCLUDE_DIRS}
     ${GMOCK_INCLUDE_DIRS})
 
-set(SOURCES
-    src/main.cpp
+set(SOURCES_CPP
     src/ConfigManager.cpp
     src/SerialInterface.cpp
     src/TeleAssertion.cpp
@@ -99,7 +98,9 @@ set(SOURCES_C
     misc/serial.c
     misc/teletest.c)
 
-add_executable(${PROJECT_NAME} ${SOURCES})
+add_executable(${PROJECT_NAME}
+    src/main.cpp
+    ${SOURCES_CPP})
 target_link_libraries(${PROJECT_NAME} ${GTEST_BOTH_LIBRARIES} serialport inih)
 
 #TODO add if case
@@ -116,13 +117,12 @@ IF (${INCLUDE_GTESTS})
     include_directories(misc)
 
     add_executable(test_uc test/test_uc.cpp ${SOURCES_C})
-    #add_executable(foobar misc/test_uc.cpp ${SOURCES_C})
     target_link_libraries(test_uc gtest gtest_main)
     #add_test(unit_test test_uc)
 
-    add_executable(test_serial_util test/serial_util.cpp ${SOURCES})
-    target_link_libraries(test_serial_util inih serialport gtest gtest_main)
-    add_test(unit_test test_pc)
+    add_executable(test_pc_client test/test_pc_client.cpp ${SOURCES_CPP})
+    target_link_libraries(test_pc_client gtest gtest_main inih serialport)
+    #add_test(unit_test test_pc_client)
 
 
 ENDIF (${INCLUDE_GTESTS})

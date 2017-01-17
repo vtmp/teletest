@@ -1,9 +1,58 @@
 #include "serial.h"
 
+/*
+void SWM_init()
+{
+    // Enable SWM clock
+    LPC_SYSCON->SYSAHBCLKCTRL |= (1<<7);
+
+    // TX in PI0_4
+    // RX in PI0_0
+    LPC_SWM->PINASSIGN[0] = 0xffff0004UL;	// (p. 127-128)
+
+    // Configure fixed-pin functions
+    // These are default values -- could be removed
+    LPC_SWM->PINENABLE0 = 0xffffffb3UL;		// (p. 132)
+
+    // Disable SWM clock
+    LPC_SYSCON->SYSAHBCLKCTRL &= (~(1<<7));
+}
+
+void UART_init(uint32_t baudrate)
+{
+    uint32_t err, uart_fra_multiplier, baudRateGenerator;
+    uint32_t systemCoreClock = Chip_Clock_GetMainClockRate();
+
+    LPC_SYSCON->SYSAHBCLKCTRL |=  (1 << 14);	// Enable clock for UART (p. 37)
+    LPC_SYSCON -> PRESETCTRL &= ~(1 << 3);		// Assert UART reset (p. 30)
+    LPC_SYSCON -> PRESETCTRL |= (1 << 3);		// Clear UART reset (p. 30)
+
+    // Frame configuration
+    LPC_USART0->CFG = UART_CFG_DATALEN_8  | UART_CFG_PARITY_NONE | UART_CFG_STOPLEN_1 | UART_CFG_ENABLE;
+
+    // Calculate baudrate generator value
+    baudRateGenerator = systemCoreClock / (16 * baudrate);
+    err = systemCoreClock - baudRateGenerator * 16 * baudrate;
+    uart_fra_multiplier = (err * 0xFF) / (baudRateGenerator * 16 * baudrate);
+    LPC_USART0->BRG = baudRateGenerator - 1;	// baud rate
+    LPC_SYSCON->UARTFRGDIV = 0xFF; // value 0xFF is always used
+    LPC_SYSCON->UARTFRGMULT = uart_fra_multiplier;
+    LPC_SYSCON->UARTCLKDIV = 1;
+
+    // Clear the status bits
+    LPC_USART0->STAT = UART_STAT_CTSDEL | UART_STAT_RXBRKDEL;
+
+
+}//*/
 
 int receive_char_by_UART()
 {
-    // TODO
+    /*
+    while(~LPC_USART0->STAT & UART_STAT_RXRDY);
+    while(~LPC_USART0->STAT & UART_STAT_RXIDLE);
+    uint32_t data = LPC_USART0->RXDATA;
+    return (char) data << 24;
+    //*/
     return 0;
 }
 
@@ -77,7 +126,8 @@ int receive_msg(char* msg_out, int length)
 
 void send_char_by_UART(char c)
 {
-    // TODO
+    // TODO while ~txready something...
+    // LPC_USART0->TXDATA = c;
 }
 
 void send_msg(char* msg)

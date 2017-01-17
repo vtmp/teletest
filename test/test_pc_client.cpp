@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include <iostream>
+#include <stdio.h>
 
 #include "TeleAssertion.hpp"
 #include "SerialInterface.hpp"
@@ -41,4 +42,38 @@ TEST (TestPcClient, valid_crc_append)
 
     std::string verified_msg = util.verify_and_split_str(msg_crc);
     EXPECT_STREQ(assertion_msg.c_str(), verified_msg.c_str());
+}
+
+// test comparison
+TEST (TestPcClient, valid_comparison_int)
+{
+    TeleAssertion ta("RUN foo WITH 1.5 5.1 EXPECT -12452");
+    std::string value_actual_str = "-12452";
+    EXPECT_TRUE(ta.evaluate_assertion_result(value_actual_str));
+}
+
+TEST (TestPcClient, valid_comparison_float)
+{
+    TeleAssertion ta("RUN foo WITH 1.5 5.1 EXPECT 0.12345");
+    char value_actial_str[32];
+    sprintf(value_actial_str, "%a", 0.12346);
+    EXPECT_TRUE(ta.evaluate_assertion_result(std::string(value_actial_str), 1e5));
+}
+
+TEST (TestPcClient, nonvalid_comparison_int)
+{
+    TeleAssertion ta("RUN foo WITH 1.5 5.1 EXPECT -12452");
+    std::string value_actual_str = "-12451";
+    EXPECT_FALSE(ta.evaluate_assertion_result(value_actual_str));
+}
+
+TEST (TestPcClient, nonvalid_comparison_float)
+{
+    TeleAssertion ta("RUN foo WITH 1.5 5.1 EXPECT 0.12345");
+    char value_actial_str[32];
+    sprintf(value_actial_str, "%a", 0.05);
+    EXPECT_FALSE(ta.evaluate_assertion_result(std::string(value_actial_str), 1e3));
+
+
+
 }

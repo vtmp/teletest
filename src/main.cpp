@@ -43,17 +43,12 @@ int main(int argc, char *argv[])
 
 
         // send & receive assertion from uC
-        auto result_str = serial.teletest_assertion(ta);
+        auto return_value_str = serial.teletest_assertion(ta);
 
         // compare results
-        // TODO cast to float or int and compare
-        std::cout << "actual: " << result_str << " - expect: " << ta.get_expected_value() << std::endl;
-
+        ta.evaluate_assertion_result(return_value_str);
     }
 
     serial.close_port();
-
-    // TODO print summary
-
     return 0;
 }

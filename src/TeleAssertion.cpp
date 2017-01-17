@@ -1,7 +1,8 @@
 #include "TeleAssertion.hpp"
 
-TeleAssertion::TeleAssertion(const std::__cxx11::string &str_assertion)
+TeleAssertion::TeleAssertion(const std::string &str_assertion)
 {
+    m_assertion_str = str_assertion;
     m_syntax_is_valid = this->parse_syntax(str_assertion);
 }
 
@@ -52,7 +53,31 @@ std::string TeleAssertion::to_serial_msg() const
     return oss.str();
 }
 
-bool TeleAssertion::compare_values(const std::string& return_value_str)
+bool TeleAssertion::evaluate_assertion_result(const std::string& return_value_str, double precision)
 {
-    return false;
+    bool assertion_result = false;
+    // float
+    if (return_value_str.find('x') != std::string::npos)
+    {
+        float value_expected = std::stof(m_expected_value);
+        float value_actual = std::stof(return_value_str);
+        assertion_result = (std::abs(value_expected - value_actual) < 1/precision);
+        if (assertion_result == false)
+            std::cout << "Assertion \"" << m_assertion_str << "\" failed! " << value_actual << " (actual)"
+                      << " != " << value_expected << " (expected)" << std::endl;
+    }
+    else
+    {
+        // int
+        int value_expected = std::stof(m_expected_value);
+        int value_actual = std::stof(return_value_str);
+        assertion_result = value_expected == value_actual;
+        if (assertion_result == false)
+            std::cout << "Assertion \"" << m_assertion_str << "\" failed! " << value_actual << " (actual)"
+                      << " != " << value_expected << " (expected)" << std::endl;
+    }
+
+    return assertion_result;
+
 }
+

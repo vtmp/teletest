@@ -15,6 +15,13 @@ SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall")
 
+#./lpcxpresso/tools/bin/arm-none-eabi-c++
+option(LPCXPRESSO_BASE_DIR "LPCXPRESSO_BASE_DIR" /opt/nxp)
+set(ARM_COMPILER ${LPCXPRESSO_BASE_DIR}/lpcxpresso/tools/bin/arm-none-eabi-c++)
+
+#TODO how to join strings in cmake?
+#arm-none-eabi-c++ -nostdlib -L"/home/valle/Workspaces/LPCXpresso/lpc_chip_8xx/Release" -L"/home/valle/Workspaces/LPCXpresso/CMSIS_DSPLIB_CM0/lib" -Xlinker -Map="Blinky.map" -Xlinker --gc-sections -Xlinker -print-memory-usage -mcpu=cortex-m0 -mthumb -T "Blinky_Release.ld" -o "Blinky.axf"  ./src/Blinky_led.o ./src/cr_cpp_config.o ./src/cr_startup_lpc8xx.o ./src/crp.o ./src/mtb.o ./src/sysinit.o   -llpc_chip_8xx -lCMSIS_DSPLIB_CM0
+
 
 
 enable_testing()

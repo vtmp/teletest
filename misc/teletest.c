@@ -28,14 +28,6 @@ int parse_from_assertion_msg(char* assertion_msg, AssertionInfo *info_ptr)
     return 1;
 }
 
-// UNUSED, NOT READY YET
-int run_function(char **arg_list, ReturnValue* ret_val_ptr)
-{
-    // TODO FIXME how can you pass function pointer with unknown arguments
-    ret_val_ptr->fval = add(atof(arg_list[0]), atof(arg_list[1]));
-    ret_val_ptr->valid;
-    ret_val_ptr->type = FLOAT;
-}
 
 int run_assertion(AssertionInfo* info_ptr, ReturnValue* ret_val_ptr)
 {

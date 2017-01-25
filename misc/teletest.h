@@ -27,7 +27,7 @@ typedef struct
 typedef struct
 {
     float fval;
-    float ival;
+    int ival;
     int valid;
     DataType type;
 } ReturnValue;
